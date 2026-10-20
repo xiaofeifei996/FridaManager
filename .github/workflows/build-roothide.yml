@@ -46,7 +46,7 @@ jobs:
             python3 scripts/verify-package.py "$deb" | tee -a dist/verification.txt
             cp "$deb" dist/
           done
-          git archive --format=zip --prefix=FridaManager/ -o dist/FridaManager-1.0.1-Source.zip HEAD
+          git archive --format=zip --prefix=FridaManager/ -o dist/FridaManager-1.0.2-Source.zip HEAD
           cd dist
           shasum -a 256 *.deb *.zip > SHA256SUMS
       - uses: actions/upload-artifact@v4

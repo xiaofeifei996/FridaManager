@@ -15,7 +15,7 @@
 		<key>icon</key>
 		<string>icon.png</string>
 		<key>label</key>
-		<string>Frida Manager</string>
+		<string>Frida 管理器</string>
 	</dict>
 </dict>
 </plist>
