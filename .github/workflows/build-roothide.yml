@@ -1,0 +1,59 @@
+name: Build RootHide
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['README.md', 'docs/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      THEOS: /opt/theos
+      THEOS_PACKAGE_SCHEME: roothide
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          brew install ldid dpkg make
+          echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Install RootHide Theos and SDK
+        run: |
+          sudo git clone --recursive https://github.com/roothide/theos.git "$THEOS"
+          sudo chown -R "$(id -un)" "$THEOS"
+          git -C "$THEOS" rev-parse HEAD
+          rm -rf "$THEOS/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
+          git -C "$THEOS/sdks" rev-parse HEAD
+      - name: Build RootHide release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp control.roothide control
+          make clean
+          make package FINALPACKAGE=1 ARCHS=arm64e THEOS_PACKAGE_SCHEME=roothide 2>&1 | tee build.log
+      - name: Validate package and export source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for deb in packages/*_iphoneos-arm64e.deb; do
+            python3 scripts/verify-package.py "$deb" | tee -a dist/verification.txt
+            cp "$deb" dist/
+          done
+          git archive --format=zip --prefix=FridaManager/ -o dist/FridaManager-1.0.1-Source.zip HEAD
+          cd dist
+          shasum -a 256 *.deb *.zip > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: FridaManager-roothide
+          path: |
+            dist/
+            build.log
+          if-no-files-found: error

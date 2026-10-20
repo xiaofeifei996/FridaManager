@@ -180,7 +180,7 @@ extern char **environ;
 - (NSString *)sileoLaunchDaemonPlist {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *paths = @[
-        ROOT_PATH_NS(@"/Library/LaunchDaemons/re.frida.server.plist"),
+        FMRootPath(@"/Library/LaunchDaemons/re.frida.server.plist"),
         @"/Library/LaunchDaemons/re.frida.server.plist"
     ];
     for (NSString *path in paths) {
@@ -192,39 +192,7 @@ extern char **environ;
 }
 
 - (NSString *)findBinaryNamed:(NSString *)name {
-    // Build search paths carefully — avoid ROOT_PATH_NS with format strings
-    NSMutableArray *searchPaths = [NSMutableArray array];
-
-    // Stock iOS paths
-    [searchPaths addObject:[NSString stringWithFormat:@"/bin/%@", name]];
-    [searchPaths addObject:[NSString stringWithFormat:@"/usr/bin/%@", name]];
-    [searchPaths addObject:[NSString stringWithFormat:@"/sbin/%@", name]];
-    [searchPaths addObject:[NSString stringWithFormat:@"/usr/sbin/%@", name]];
-
-    // Common rootless jailbreak prefixes
-    NSArray *prefixes = @[
-        @"/var/jb",
-        @"/private/preboot",
-        @"/var/containers/Bundle",
-    ];
-    for (NSString *prefix in prefixes) {
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/bin/%@", prefix, name]];
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/usr/bin/%@", prefix, name]];
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/sbin/%@", prefix, name]];
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/usr/sbin/%@", prefix, name]];
-    }
-
-    // Also use the jailbreak root from our own binary path as a hint
-    // e.g. if frida-server is at /private/preboot/.../procursus/usr/sbin/frida-server
-    // then launchctl might be at /private/preboot/.../procursus/usr/bin/launchctl
-    if (_binaryPath) {
-        NSString *dir = [_binaryPath stringByDeletingLastPathComponent]; // .../usr/sbin
-        NSString *parent = [dir stringByDeletingLastPathComponent];     // .../usr
-        NSString *root = [parent stringByDeletingLastPathComponent];    // .../procursus
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/bin/%@", root, name]];
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/usr/bin/%@", root, name]];
-        [searchPaths addObject:[NSString stringWithFormat:@"%@/usr/sbin/%@", root, name]];
-    }
+    NSArray<NSString *> *searchPaths = FMToolSearchPaths(name);
 
     FMLog(@"Searching for %@ in %lu paths...", name, (unsigned long)searchPaths.count);
     for (NSString *path in searchPaths) {

@@ -4,6 +4,15 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Build the requested native RootHide package without altering other variants.
+if [ "${1:-}" = "roothide" ]; then
+    trap 'cp control.rootful control' EXIT
+    cp control.roothide control
+    make clean
+    make package FINALPACKAGE=1 ARCHS=arm64e THEOS_PACKAGE_SCHEME=roothide
+    exit 0
+fi
+
 echo "=== Building FridaManager ==="
 
 # Build rootful (iphoneos-arm)

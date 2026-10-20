@@ -1,10 +1,10 @@
 #ifndef FMCOMMON_H
 #define FMCOMMON_H
 
-#import <rootless.h>
+#import "FMPaths.h"
 
-#define kFMPreferencesPlistPath @"/var/mobile/Library/Preferences/com.b1tbreaker.fridamanager.plist"
-#define kFMSocketPath @"/var/run/fridamgr.sock"
+#define kFMPreferencesPlistPath FMDataPath(@"/var/mobile/Library/Preferences/com.b1tbreaker.fridamanager.plist")
+#define kFMSocketPath FMDataPath(@"/var/run/fridamgr.sock")
 
 #define kFMDefaultPort 27042
 #define kFMDefaultListenAddress @"127.0.0.1"
@@ -33,20 +33,20 @@
 #define kFMCommandClearHistory @"CLEARHISTORY"
 
 // Managed binary install path (our own copy, separate from Sileo's)
-#define kFMManagedBinaryPath ROOT_PATH_NS(@"/usr/local/bin/frida-server")
+#define kFMManagedBinaryPath FMRootPath(@"/usr/local/bin/frida-server")
 
 // Managed agent dylib install path (needed for spawn/inject)
-#define kFMManagedAgentPath ROOT_PATH_NS(@"/usr/lib/frida/frida-agent.dylib")
+#define kFMManagedAgentPath FMRootPath(@"/usr/lib/frida/frida-agent.dylib")
 
 // Sileo LaunchDaemon label
 #define kFMSileoFridaLabel @"re.frida.server"
 
 // Search paths for frida-server binary
 #define kFMFridaServerSearchPaths @[ \
-    ROOT_PATH_NS(@"/usr/sbin/frida-server"), \
-    ROOT_PATH_NS(@"/usr/local/sbin/frida-server"), \
-    ROOT_PATH_NS(@"/usr/bin/frida-server"), \
-    ROOT_PATH_NS(@"/usr/local/bin/frida-server") \
+    FMRootPath(@"/usr/sbin/frida-server"), \
+    FMRootPath(@"/usr/local/sbin/frida-server"), \
+    FMRootPath(@"/usr/bin/frida-server"), \
+    FMRootPath(@"/usr/local/bin/frida-server") \
 ]
 
 // GitHub Atom feed (lightweight, no API rate limit)
@@ -54,9 +54,9 @@
 #define kFMGitHubReleasesPerPage 100
 
 // Log file path
-#define kFMLogPath @"/var/tmp/fridamgr.log"
+#define kFMLogPath FMDataPath(@"/var/tmp/fridamgr.log")
 
 // Download history file (separate from preferences to avoid cfprefsd conflicts)
-#define kFMHistoryPath @"/var/mobile/Library/com.b1tbreaker.fridamanager.history.plist"
+#define kFMHistoryPath FMDataPath(@"/var/mobile/Library/com.b1tbreaker.fridamanager.history.plist")
 
 #endif

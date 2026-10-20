@@ -31,7 +31,11 @@
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
-    strlcpy(addr.sun_path, socketPath, sizeof(addr.sun_path));
+    if (strlcpy(addr.sun_path, socketPath, sizeof(addr.sun_path)) >= sizeof(addr.sun_path)) {
+        close(_listenFD);
+        _listenFD = -1;
+        return NO;
+    }
 
     if (bind(_listenFD, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         close(_listenFD);

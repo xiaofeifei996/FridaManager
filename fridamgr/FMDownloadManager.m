@@ -319,8 +319,8 @@ void FMLog(NSString *format, ...) {
         @"https://github.com/frida/frida/releases/download/%@/%@", version, debName];
 
     // Download directly to disk (never load the 15MB+ .deb into memory — avoids jetsam kills)
-    NSString *tmpDeb = @"/var/tmp/fridamgr_download.deb";
-    NSString *tmpExtract = @"/var/tmp/fridamgr_extract";
+    NSString *tmpDeb = FMDataPath(@"/var/tmp/fridamgr_download.deb");
+    NSString *tmpExtract = FMDataPath(@"/var/tmp/fridamgr_extract");
 
     NSFileManager *fm = [NSFileManager defaultManager];
     [fm removeItemAtPath:tmpDeb error:nil];
@@ -405,7 +405,7 @@ void FMLog(NSString *format, ...) {
 
     // Step 1: Memory-map the .deb and extract data.tar.* to a temp file
     // Memory-mapping avoids loading 15MB+ into RAM (only pages we read get loaded)
-    NSString *arTmp = @"/var/tmp/fridamgr_ar_tmp";
+    NSString *arTmp = FMDataPath(@"/var/tmp/fridamgr_ar_tmp");
     [fileMgr removeItemAtPath:arTmp error:nil];
     [fileMgr createDirectoryAtPath:arTmp withIntermediateDirectories:YES attributes:nil error:nil];
 
@@ -721,34 +721,12 @@ void FMLog(NSString *format, ...) {
 }
 
 - (NSString *)findToolNamed:(NSString *)name {
-    NSArray *searchPaths = @[
-        [NSString stringWithFormat:@"/usr/bin/%@", name],
-        [NSString stringWithFormat:@"/usr/local/bin/%@", name],
-        [NSString stringWithFormat:@"/bin/%@", name],
-        [NSString stringWithFormat:@"/sbin/%@", name],
-        [NSString stringWithFormat:@"/usr/sbin/%@", name],
-        [NSString stringWithFormat:@"/var/jb/usr/bin/%@", name],
-        [NSString stringWithFormat:@"/var/jb/usr/local/bin/%@", name],
-        [NSString stringWithFormat:@"/var/jb/bin/%@", name],
-    ];
-
     NSFileManager *fm = [NSFileManager defaultManager];
-    for (NSString *path in searchPaths) {
+    for (NSString *path in FMToolSearchPaths(name)) {
         if ([fm isExecutableFileAtPath:path]) {
             return path;
         }
     }
-
-    // Also check the jailbreak root derived from our managed binary path
-    NSString *managed = kFMManagedBinaryPath;
-    NSString *root = [[[managed stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
-    if (root.length > 1) {
-        NSString *path = [NSString stringWithFormat:@"%@/usr/bin/%@", root, name];
-        if ([fm isExecutableFileAtPath:path]) return path;
-        path = [NSString stringWithFormat:@"%@/bin/%@", root, name];
-        if ([fm isExecutableFileAtPath:path]) return path;
-    }
-
     return nil;
 }
 
@@ -795,7 +773,7 @@ void FMLog(NSString *format, ...) {
             envDict[key] = val;
         }
     }
-    envDict[@"PATH"] = @"/var/jb/usr/bin:/var/jb/usr/sbin:/var/jb/usr/local/bin:/var/jb/bin:/var/jb/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/bin:/sbin";
+    envDict[@"PATH"] = FMToolEnvironmentPath();
 
     NSMutableArray *envArray = [NSMutableArray array];
     for (NSString *key in envDict) {

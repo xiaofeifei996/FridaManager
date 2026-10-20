@@ -29,10 +29,12 @@ typedef void (*libSandy_applyProfile_t)(const char *);
 
 - (void)ensureSandboxAccess {
     if (!_profileApplied) {
-        void *handle = dlopen("/var/jb/usr/lib/libsandy.dylib", RTLD_LAZY);
+        void *handle = dlopen([FMRootPath(@"/usr/lib/libsandy.dylib") fileSystemRepresentation], RTLD_LAZY);
+#if !THEOS_PACKAGE_SCHEME_ROOTHIDE
         if (!handle) {
             handle = dlopen("/usr/lib/libsandy.dylib", RTLD_LAZY);
         }
+#endif
         if (handle) {
             libSandy_applyProfile_t applyProfile = (libSandy_applyProfile_t)dlsym(handle, "libSandy_applyProfile");
             if (applyProfile) {
@@ -53,7 +55,10 @@ typedef void (*libSandy_applyProfile_t)(const char *);
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     const char *socketPath = [kFMSocketPath UTF8String];
-    strlcpy(addr.sun_path, socketPath, sizeof(addr.sun_path));
+    if (strlcpy(addr.sun_path, socketPath, sizeof(addr.sun_path)) >= sizeof(addr.sun_path)) {
+        close(sockFD);
+        return nil;
+    }
 
     struct timeval timeout;
     timeout.tv_sec = 30;

@@ -2,8 +2,6 @@
 #import "FMCommon.h"
 #import <sys/stat.h>
 
-static NSString *const kFMDownloadHistoryKey = @"DownloadHistory";
-
 @implementation FMConfig
 
 + (instancetype)sharedConfig {

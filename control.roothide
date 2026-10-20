@@ -1,0 +1,9 @@
+Package: com.b1tbreaker.fridamanager
+Name: FridaManager
+Version: 1.0.1
+Architecture: iphoneos-arm64e
+Description: Manage frida-server from Settings.app. RootHide native build with dynamic jailbreak paths.
+Maintainer: b1tbreaker
+Author: b1tbreaker
+Section: Tweaks
+Depends: preferenceloader, firmware (>= 14.0), com.opa334.libsandy
